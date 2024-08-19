@@ -1,11 +1,27 @@
 import json
+import os
 from create_product.service import create_product_service
 from common.logger import get_logger
 from common.exceptions import BadRequestException
+from dotenv import load_dotenv
+load_dotenv()
+
+from psycopg2.pool import SimpleConnectionPool
 
 logger = get_logger()
 
 def handler(event, context):
+    try:
+        global pool
+        if not pool:
+            pool = SimpleConnectionPool(0, 1, dsn=os.environ['DATABASE_URL'], application_name="$ docs_lambda_python")
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': 'Internal Server Error'})
+        }
+
     try:
         logger.info(f"Event: {event}")
         body = json.loads(event.get('body', '{}'))
