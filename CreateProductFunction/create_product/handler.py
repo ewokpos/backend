@@ -1,34 +1,19 @@
 import json
-import os
-from create_product.service import create_product_service
+import traceback
 from common.logger import get_logger
+from create_product.service import ProductService
 from common.exceptions import BadRequestException
-from dotenv import load_dotenv
-load_dotenv()
 
-from psycopg2.pool import SimpleConnectionPool
-
+# Inicializar logger
 logger = get_logger()
 
 def handler(event, context):
+    logger.info("Lambda handler initialized")
+    product_service = ProductService()
     try:
-        global pool
-        if not pool:
-            pool = SimpleConnectionPool(0, 1, dsn=os.environ['DATABASE_URL'], application_name="$ docs_lambda_python")
-    except Exception as e:
-        logger.error(f"Error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': 'Internal Server Error'})
-        }
-
-    try:
-        logger.info(f"Event: {event}")
         body = json.loads(event.get('body', '{}'))
+        product = product_service.create_product(body)
         
-        # Llamar al servicio de creación de producto
-        product = create_product_service(body)
-
         return {
             'statusCode': 201,
             'body': json.dumps({
@@ -43,7 +28,8 @@ def handler(event, context):
             'body': json.dumps({'error': str(e)})
         }
     except Exception as e:
-        logger.error(f"Error: {str(e)}")
+        logger.error(f"Unhandled error: {str(e)}")
+        logger.error(f"Stack trace: {traceback.format_exc()}")
         return {
             'statusCode': 500,
             'body': json.dumps({'error': 'Internal Server Error'})
