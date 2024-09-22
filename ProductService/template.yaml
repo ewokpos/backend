@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Product Management Service
+  SAM Template for managing product-related functions
+
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  # Lambda para crear productos
+  CreateProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: create_product/
+      Handler: create_product.handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DATABASE_URL: "postgresql://dba:UY1ONYvmdcX6iGuIL5Wpmw@south-seal-5887.6zw.aws-eu-west-1.cockroachlabs.cloud:26257/developdb?sslmode=verify-full"
+          ROOT_CERT_PATH: "root.crt"
+      Events:
+        CreateProductAPI:
+          Type: Api
+          Properties:
+            Path: /product/create
+            Method: post
+      AutoPublishAlias: live
+
+  # Lambda para actualizar productos
+  UpdateProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_product/
+      Handler: update_product.handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DATABASE_URL: "postgresql://dba:UY1ONYvmdcX6iGuIL5Wpmw@south-seal-5887.6zw.aws-eu-west-1.cockroachlabs.cloud:26257/developdb?sslmode=verify-full"
+          ROOT_CERT_PATH: "root.crt"
+      Events:
+        UpdateProductAPI:
+          Type: Api
+          Properties:
+            Path: /product/update
+            Method: put
+      AutoPublishAlias: live
+
+  # Lambda para eliminar productos
+  DeleteProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_product/
+      Handler: delete_product.handler
+      Runtime: python3.12
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          DATABASE_URL: "postgresql://dba:UY1ONYvmdcX6iGuIL5Wpmw@south-seal-5887.6zw.aws-eu-west-1.cockroachlabs.cloud:26257/developdb?sslmode=verify-full"
+          ROOT_CERT_PATH: "root.crt"
+      Events:
+        DeleteProductAPI:
+          Type: Api
+          Properties:
+            Path: /product/delete
+            Method: delete
+      AutoPublishAlias: live
+
+
+Outputs:
+  # API Gateway endpoints para cada función
+  CreateProductApi:
+    Description: "API Gateway endpoint URL para crear producto"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/product/create"
+
+  UpdateProductApi:
+    Description: "API Gateway endpoint URL para actualizar producto"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/product/update"
+
+  DeleteProductApi:
+    Description: "API Gateway endpoint URL para eliminar producto"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/product/delete"
+
+  # ARNs de las funciones Lambda
+  CreateProductFunctionArn:
+    Description: "ARN de la función Lambda para crear productos"
+    Value: !GetAtt CreateProductFunction.Arn
+
+  UpdateProductFunctionArn:
+    Description: "ARN de la función Lambda para actualizar productos"
+    Value: !GetAtt UpdateProductFunction.Arn
+
+  DeleteProductFunctionArn:
+    Description: "ARN de la función Lambda para eliminar productos"
+    Value: !GetAtt DeleteProductFunction.Arn

@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from create_product.repository import ProductRepository
 from common.exceptions import BadRequestException
+from create_product.validators import validate_product_data
 
 @pytest.fixture
 def product_repository():
@@ -71,3 +72,15 @@ def test_create_product_missing_fields(product_repository):
     # Verificar que se lanza una excepción cuando faltan campos
     with pytest.raises(BadRequestException, match="Missing required product fields"):
         repository.create_product(product_data)
+
+def test_validate_product_data():
+    valid_data = {"name": "Producto A", "category": "Categoría X", "price": 10.0}
+    invalid_data = {"name": "", "category": "Categoría X", "price": -5}
+
+    # Prueba con datos válidos
+    product = validate_product_data(valid_data)
+    assert product.name == "Producto A"
+
+    # Prueba con datos inválidos
+    with pytest.raises(BadRequestException):
+        validate_product_data(invalid_data)
