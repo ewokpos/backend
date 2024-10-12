@@ -6,6 +6,10 @@ class ProductModel(BaseModel):
     name: str
     category: str
     price: condecimal(gt=0)  # Validar que el precio sea un número mayor que 0
+    stock: int
+    description: str
+    sku: str
+    barcode: str
 
 def validate_product_data(data):
     try:
